@@ -3,6 +3,7 @@
     "initializer_list": "cpp",
     "functional": "cpp",
     "memory": "cpp",
-    "iosfwd": "cpp"
+    "iosfwd": "cpp",
+    "typeinfo": "cpp"
   }
 }

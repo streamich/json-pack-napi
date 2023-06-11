@@ -1,17 +1,44 @@
-#include <napi.h>
+#include <assert.h>
+#include <node_api.h>
 
-Napi::String ReadUtf8(const Napi::CallbackInfo& info) {
-  auto env = info.Env();
-  auto buf = info[0].As<Napi::Uint8Array>();
-  auto offset = info[1].As<Napi::Number>().Int32Value();
-  auto length = info[2].As<Napi::Number>().Int32Value();
-  auto str = Napi::String::New(env, (char*)buf.Data() + offset, length);
+static napi_value ReadUtf8(napi_env env, napi_callback_info info) {
+  size_t argc = 3;
+	napi_value args[3];
+	napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	uint8_t* buf;
+	uint32_t offset;
+	uint32_t length;
+	size_t buffer_size;
+	napi_get_buffer_info(env, args[0], (void**) &buf, &buffer_size);
+	napi_get_value_uint32(env, args[1], &offset);
+	napi_get_value_uint32(env, args[2], &length);
+  bool ascii = true;
+  auto position = offset;
+  auto end = position + length;
+  if (length > 32) {
+    ascii = false;
+  } else {
+    while(position < end)
+      if (buf[position++] >= 0x80) {
+        ascii = false;
+        break;
+      }
+  }
+  napi_value str;
+  if (ascii) napi_create_string_latin1(env, (const char*) buf + offset, (int) length, &str);
+  else napi_create_string_utf8(env, (const char*) buf + offset, (int) length, &str);
   return str;
 }
 
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  exports.Set(Napi::String::New(env, "readUtf8"), Napi::Function::New(env, ReadUtf8));
+#define DECLARE_NAPI_METHOD(name, func)                                        \
+  { name, 0, func, 0, 0, 0, napi_default, 0 }
+
+static napi_value Init(napi_env env, napi_value exports) {
+  napi_status status;
+  napi_property_descriptor desc = DECLARE_NAPI_METHOD("readUtf8", ReadUtf8);
+  status = napi_define_properties(env, exports, 1, &desc);
+  assert(status == napi_ok);
   return exports;
 }
 
-NODE_API_MODULE(addon, Init)
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
