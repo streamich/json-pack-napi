@@ -1,3 +1,1 @@
-var addon = require('bindings')('addon');
-
-console.log(addon);
+module.exports = require('bindings')('addon');

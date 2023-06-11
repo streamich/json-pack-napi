@@ -1,5 +1,6 @@
 {
   "name": "json-pack-napi",
+  "type": "cjs",
   "version": "0.0.0",
   "description": "JSON encoding acceleration for Node.js",
   "main": "main.js",
@@ -8,7 +9,7 @@
     "node-addon-api": "^6.1.0"
   },
   "scripts": {
-    "test": "node main.js",
+    "test": "node test.js",
     "build": "node-gyp configure && node-gyp rebuild"
   },
   "gypfile": true
